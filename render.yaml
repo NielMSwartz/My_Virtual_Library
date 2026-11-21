@@ -31,8 +31,9 @@ services:
         fromDatabase:
           name: virtual-library-db
           property: connectionString
+      # Optional: set a Google Books key later in the Render dashboard.
       - key: GOOGLE_BOOKS_API_KEY
-        sync: false
+        value: ""
       - key: OPEN_LIBRARY_ENABLED
         value: "1"
       - key: SEARCH_CACHE_TTL_SECONDS
