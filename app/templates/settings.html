@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% from '_form_field.html' import field %}
+
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<section class="welcome-row">
+  <div>
+    <p class="eyebrow">Make it yours</p>
+    <h2 class="welcome-title">Settings</h2>
+    <p class="muted">A few small preferences for your reading space.</p>
+  </div>
+</section>
+
+<div class="settings-grid">
+  <section class="card">
+    <div class="section-head"><div><h2>Reading goal</h2><p class="muted">How many books would you like to finish in {{ year }}?</p></div>{{ icon('target') }}</div>
+    <form method="post">
+      {{ form.hidden_tag() }}
+      {{ field(form.yearly_goal, hint='Enter 0 to turn the goal off.') }}
+      <div class="form-actions">{{ form.submit(class='btn btn-primary') }}</div>
+    </form>
+    {% if stats.goal %}
+      <p class="field-hint" style="margin-top:14px">
+        You are {{ stats.finished_this_year }} of {{ stats.goal }} books along — {{ stats.goal_percent }}% complete.
+      </p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><h2>Your library</h2><p class="muted">Everything is stored locally in your database.</p></div>{{ icon('library') }}</div>
+    <div class="fact-list">
+      <div><div class="fact-label">Total books</div><div class="fact-value">{{ stats.total_books }}</div></div>
+      <div><div class="fact-label">Finished</div><div class="fact-value">{{ stats.total_finished }}</div></div>
+      <div><div class="fact-label">In progress</div><div class="fact-value">{{ stats.counts.currently_reading }}</div></div>
+      <div><div class="fact-label">Pages tracked</div><div class="fact-value">{{ "{:,}".format(stats.total_pages_read) }}</div></div>
+    </div>
+    <p class="field-hint" style="margin-top:18px">
+      Book data and reading progress live in the application database, not in your browser. They survive refreshes,
+      browser restarts and Flask restarts. Use database migrations when the schema changes.
+    </p>
+  </section>
+</div>
+{% endblock %}

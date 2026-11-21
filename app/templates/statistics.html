@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+
+{% block page_title %}Statistics{% endblock %}
+
+{% block content %}
+<section class="welcome-row">
+  <div>
+    <p class="eyebrow">Your reading, measured</p>
+    <h2 class="welcome-title">Statistics</h2>
+    <p class="muted">Figures come from your saved books and dated bookmark updates.</p>
+  </div>
+  <a class="btn btn-outline" href="{{ url_for('settings.index') }}">{{ icon('target') }} Reading goal</a>
+</section>
+
+<section class="stats-summary" aria-label="Reading summary">
+  <div class="stat-card">
+    <span class="stat-icon stat-icon--beige">{{ icon('check-circle') }}</span>
+    <span class="stat-value">{{ stats.total_finished }}</span>
+    <span class="stat-label">Books finished</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon stat-icon--sage">{{ icon('book-open') }}</span>
+    <span class="stat-value">{{ "{:,}".format(stats.total_pages_read) }}</span>
+    <span class="stat-label">Pages read in total</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon stat-icon--sage">{{ icon('calendar') }}</span>
+    <span class="stat-value">{{ stats.finished_this_year }}</span>
+    <span class="stat-label">Finished in {{ year }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon stat-icon--beige">{{ icon('star') }}</span>
+    <span class="stat-value">{{ stats.average_rating if stats.average_rating is not none else '—' }}</span>
+    <span class="stat-label">Average rating</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon stat-icon--neutral">{{ icon('target') }}</span>
+    <span class="stat-value">{{ "{:,}".format(stats.pages_this_year) }}</span>
+    <span class="stat-label">Pages read in {{ year }}</span>
+  </div>
+</section>
+
+<section class="card goal-card">
+  <div class="section-head">
+    <div><h2>{{ year }} reading goal</h2><p class="muted">{{ stats.finished_this_year }} books completed this year</p></div>
+    {{ icon('target') }}
+  </div>
+  {% if stats.goal %}
+    <div class="goal-row">
+      <span class="goal-number">{{ stats.finished_this_year }} <span class="muted" style="font-size:.9rem">/ {{ stats.goal }} books</span></span>
+      <span class="muted" style="font-size:.82rem">{{ stats.goal_percent }}% complete</span>
+    </div>
+    <div class="goal-track"><div class="goal-fill" style="width: {{ stats.goal_percent }}%"></div></div>
+  {% else %}
+    <p class="muted">No goal set yet. <a class="text-link" href="{{ url_for('settings.index') }}">Set one in settings {{ icon('chevron') }}</a></p>
+  {% endif %}
+</section>
+
+<div class="chart-grid">
+  <section class="card">
+    <div class="section-head"><div><h2>Books completed by month</h2><p class="muted">{{ year }} · finished books only</p></div></div>
+    <div class="bar-list">
+      {% for month in months %}
+        {% set count = stats.completed_by_month.get(loop.index, 0) %}
+        <div class="bar-row">
+          <span>{{ month }}</span>
+          <div class="bar-track"><div class="bar-fill" style="width: {{ (count / monthly_max * 100) if monthly_max else 0 }}%"></div></div>
+          <span>{{ count }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><h2>Genre distribution</h2><p class="muted">Across every book on your shelf</p></div></div>
+    {% if stats.genres %}
+      <div class="hbar-list">
+        {% for genre, count in stats.genres.most_common(8) %}
+          <div class="hbar-row">
+            <span style="min-width:110px">{{ genre }}</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--beige" style="width: {{ count / genre_max * 100 }}%"></div></div>
+            <span class="muted">{{ count }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="compact-empty">{{ icon('library') }} <span>Add genres to your books to see them here.</span></div>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card" style="margin-top: 22px;">
+  <div class="section-head"><div><h2>Reading progress by book</h2><p class="muted">Books you are currently reading{% if stats.average_progress is not none %} · average {{ stats.average_progress }}%{% endif %}</p></div></div>
+  {% if stats.reading_books %}
+    <div class="hbar-list">
+      {% for book in stats.reading_books %}
+        <div class="progress-row">
+          <div class="progress-row-head">
+            <a href="{{ url_for('books.book_detail', book_id=book.id) }}">{{ book.title }}</a>
+            <span class="muted">{% if book.progress_percent is not none %}{{ book.progress_percent }}%{% else %}Page {{ book.current_page }}{% endif %}</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width: {{ book.progress_width }}%"></div></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="compact-empty">{{ icon('book-open') }} <span>No books in progress.</span></div>
+  {% endif %}
+</section>
+
+<p class="field-hint" style="margin-top:16px">
+  Pages read are calculated from dated bookmark snapshots. Each advance between two snapshots is counted once;
+  repeated updates to the same page never inflate the total.
+</p>
+{% endblock %}

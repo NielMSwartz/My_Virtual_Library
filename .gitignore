@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local database files
+instance/*.db
+instance/*.db-journal
+instance/*.sqlite3
+instance/*.sqlite3-journal
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

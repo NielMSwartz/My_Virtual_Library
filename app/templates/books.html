@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% from '_book_card.html' import book_card %}
+
+{% block page_title %}{{ list_title }}{% endblock %}
+
+{% block content %}
+<form class="toolbar" method="get" action="{{ url_for('books.list_books') }}" role="search">
+  <label class="search-bar">
+    {{ icon('search') }}
+    <span class="sr-only">Search your library</span>
+    <input type="search" name="q" value="{{ query_text }}" placeholder="Search title, author or ISBN…">
+  </label>
+  <select name="status" aria-label="Filter by status">
+    <option value="">All statuses</option>
+    {% for value, label in [('currently_reading', 'Currently reading'), ('want_to_read', 'Want to read'), ('to_buy', 'To buy'), ('finished', 'Finished')] %}
+      <option value="{{ value }}" {{ 'selected' if active_status == value else '' }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="genre" aria-label="Filter by genre">
+    <option value="">All genres</option>
+    {% for value in genres %}<option value="{{ value }}" {{ 'selected' if genre == value else '' }}>{{ value }}</option>{% endfor %}
+  </select>
+  <select name="author" aria-label="Filter by author">
+    <option value="">All authors</option>
+    {% for value in authors %}<option value="{{ value }}" {{ 'selected' if author == value else '' }}>{{ value }}</option>{% endfor %}
+  </select>
+  <select name="rating" aria-label="Filter by rating">
+    <option value="">Any rating</option>
+    {% for value, label in rating_filters %}<option value="{{ value }}" {{ 'selected' if rating == value|string else '' }}>{{ label }}</option>{% endfor %}
+  </select>
+  <select name="sort" aria-label="Sort books">
+    {% for value, label in sort_labels %}<option value="{{ value }}" {{ 'selected' if sort == value else '' }}>{{ label }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-outline" type="submit">{{ icon('filter') }} Apply</button>
+  {% if query_text or active_status or genre or author or rating or sort != 'recent_added' %}
+    <a class="btn btn-soft" href="{{ url_for('books.list_books') }}">Clear</a>
+  {% endif %}
+</form>
+
+<p class="filter-note">{{ total_in_view }} book{{ '' if total_in_view == 1 else 's' }} shown{% if active_status %} in {{ list_title|lower }}{% endif %}.</p>
+
+{% if books %}
+  <div class="book-grid">
+    {% for book in books %}{{ book_card(book, show_quick_update=true) }}{% endfor %}
+  </div>
+{% else %}
+  <section class="card empty-state">
+    <span class="empty-icon">{{ icon('book') }}</span>
+    <h2>{% if query_text or active_status or genre or author or rating %}No books match those filters{% else %}Nothing here yet{% endif %}</h2>
+    <p>{% if query_text or active_status or genre or author or rating %}Try clearing a filter or searching for something else.{% else %}Add a book to start building your shelf.{% endif %}</p>
+    {% if query_text or active_status or genre or author or rating %}
+      <a class="btn btn-outline" href="{{ url_for('books.list_books') }}">Clear filters</a>
+    {% else %}
+      <a class="btn btn-primary" href="{{ url_for('books.new_book') }}">{{ icon('plus') }} Add a book</a>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

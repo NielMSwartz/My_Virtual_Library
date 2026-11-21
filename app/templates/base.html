@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="description" content="A calm, personal digital bookshelf for tracking what you read.">
+  <meta name="theme-color" content="#78917B">
+  <title>{% block title %}{{ self.page_title() }}{% endblock %} · Bookshelf</title>
+  <link rel="manifest" href="{{ url_for('pwa.manifest') }}">
+  <link rel="icon" type="image/png" sizes="64x64" href="{{ url_for('static', filename='images/icons/favicon-64.png') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/icons/apple-touch-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+{% from '_icons.html' import icon %}
+{% set nav_items = [
+    ('dashboard.index', none, 'Dashboard', 'grid'),
+    ('books.list_books', 'currently_reading', 'Currently Reading', 'book-open'),
+    ('books.list_books', 'want_to_read', 'Want to Read', 'bookmark'),
+    ('books.list_books', 'to_buy', 'To Buy', 'bag'),
+    ('books.list_books', 'finished', 'Finished Books', 'check-circle'),
+    ('books.list_books', 'all', 'All Books', 'library'),
+    ('statistics.index', none, 'Statistics', 'chart'),
+    ('settings.index', none, 'Settings', 'settings')
+] %}
+
+<div class="app-shell">
+  <div class="sidebar-backdrop" data-sidebar-close></div>
+
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="sidebar-inner">
+      <a class="brand" href="{{ url_for('dashboard.index') }}">
+        <span class="brand-mark">{{ icon('book') }}</span>
+        <span class="brand-copy">
+          <strong>Bookshelf</strong>
+          <small>Your reading space</small>
+        </span>
+      </a>
+
+      <nav class="side-nav" aria-label="Library sections">
+        <p class="nav-label">Library</p>
+        {% for endpoint, status, label, icon_name in nav_items[:6] %}
+          {% if status == 'all' %}{% set href = url_for(endpoint) %}{% else %}{% set href = url_for(endpoint, status=status) %}{% endif %}
+          {% set active = request.endpoint == endpoint and (endpoint != 'books.list_books' or (status == 'all' and not request.args.get('status')) or request.args.get('status') == status) %}
+          <a class="nav-item {{ 'is-active' if active else '' }}" href="{{ href }}" {{ 'aria-current=page' if active else '' }}>
+            {{ icon(icon_name) }}
+            <span>{{ label }}</span>
+          </a>
+        {% endfor %}
+        <p class="nav-label nav-label--spaced">Insights</p>
+        {% for endpoint, status, label, icon_name in nav_items[6:] %}
+          {% set active = request.endpoint == endpoint %}
+          <a class="nav-item {{ 'is-active' if active else '' }}" href="{{ url_for(endpoint) }}" {{ 'aria-current=page' if active else '' }}>
+            {{ icon(icon_name) }}
+            <span>{{ label }}</span>
+          </a>
+        {% endfor %}
+      </nav>
+
+      <div class="sidebar-bottom">
+        <a class="btn btn-primary btn-block" href="{{ url_for('books.new_book') }}">
+          {{ icon('plus') }} <span>Add book</span>
+        </a>
+        <p class="sidebar-footnote">A quiet place for every story.</p>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-column">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn menu-toggle" type="button" data-sidebar-open aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+          {{ icon('menu') }}
+        </button>
+        <div class="topbar-heading">
+          <span class="topbar-eyebrow">Bookshelf</span>
+          <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        {% block topbar_actions %}{% endblock %}
+        <a class="btn btn-primary btn-top-add" href="{{ url_for('books.new_book') }}">{{ icon('plus') }} <span>Add book</span></a>
+      </div>
+    </header>
+
+    <main class="content" id="main-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-stack" role="status" aria-live="polite">
+            {% for category, message in messages %}
+              <div class="flash flash--{{ category }}">
+                {{ icon('check' if category == 'success' else ('alert' if category in ['error', 'danger'] else 'book')) }}
+                <span>{{ message }}</span>
+                <button class="flash-close" type="button" data-flash-close aria-label="Dismiss message">{{ icon('x') }}</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<nav class="mobile-nav" aria-label="Quick navigation">
+  <a href="{{ url_for('dashboard.index') }}" class="mobile-nav-item {{ 'is-active' if request.endpoint == 'dashboard.index' else '' }}">
+    {{ icon('grid') }}<span>Home</span>
+  </a>
+  <a href="{{ url_for('books.list_books', status='currently_reading') }}" class="mobile-nav-item {{ 'is-active' if request.endpoint == 'books.list_books' and request.args.get('status') == 'currently_reading' else '' }}">
+    {{ icon('book-open') }}<span>Reading</span>
+  </a>
+  <a href="{{ url_for('books.list_books') }}" class="mobile-nav-item {{ 'is-active' if request.endpoint == 'books.list_books' and not request.args.get('status') else '' }}">
+    {{ icon('library') }}<span>Library</span>
+  </a>
+  <a href="{{ url_for('books.new_book') }}" class="mobile-nav-item mobile-nav-add">
+    <span class="mobile-add-circle">{{ icon('plus') }}</span><span>Add</span>
+  </a>
+</nav>
+
+<div class="modal-root" id="modal-root" hidden>
+  <div class="modal-backdrop" data-modal-close></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <h2 id="modal-title">Confirm</h2>
+      <button class="icon-btn" type="button" data-modal-close aria-label="Close dialog">{{ icon('x') }}</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+<script>
+  window.BOOK_TRACKER = {
+    placeholder: {{ url_for('static', filename='images/book-placeholder.svg') | tojson }},
+    onlineSearchUrl: {{ url_for('search.online') | tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/reading_progress.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+<script>
+  // Installable app support. Service workers require HTTPS (or localhost).
+  if ('serviceWorker' in navigator &&
+      (window.location.protocol === 'https:' ||
+       ['localhost', '127.0.0.1'].indexOf(window.location.hostname) !== -1)) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register({{ url_for('pwa.service_worker') | tojson }}, { scope: '/' })
+        .catch(function (error) {
+          console.warn('Bookshelf service worker was not registered:', error);
+        });
+    });
+  }
+</script>
+</body>
+</html>

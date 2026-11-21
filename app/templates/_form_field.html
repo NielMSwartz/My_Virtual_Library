@@ -1,0 +1,9 @@
+{# Consistent field rendering for all forms. #}
+{% macro field(form_field, hint=None, css_class='') %}
+<div class="field {{ css_class }}">
+  {{ form_field.label(class='field-label') }}
+  {{ form_field(class='input') }}
+  {% if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
+  {% for error in form_field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+</div>
+{% endmacro %}

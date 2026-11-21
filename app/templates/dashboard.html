@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% from '_book_card.html' import book_card %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="welcome-row">
+  <div>
+    <p class="eyebrow">Your reading life, at a glance</p>
+    <h2 class="welcome-title">Good to see you.</h2>
+    <p class="muted">Pick up where you left off, or add something new to the shelf.</p>
+  </div>
+  <a class="btn btn-soft" href="{{ url_for('books.new_book') }}">{{ icon('plus') }} Add a book</a>
+</section>
+
+<section class="stat-grid" aria-label="Library summary">
+  <a class="stat-card" href="{{ url_for('books.list_books') }}">
+    <span class="stat-icon stat-icon--neutral">{{ icon('library') }}</span>
+    <span class="stat-value">{{ total_books }}</span>
+    <span class="stat-label">Books in library</span>
+  </a>
+  <a class="stat-card" href="{{ url_for('books.list_books', status='currently_reading') }}">
+    <span class="stat-icon stat-icon--sage">{{ icon('book-open') }}</span>
+    <span class="stat-value">{{ counts.currently_reading }}</span>
+    <span class="stat-label">Currently reading</span>
+  </a>
+  <a class="stat-card" href="{{ url_for('books.list_books', status='finished') }}">
+    <span class="stat-icon stat-icon--beige">{{ icon('check-circle') }}</span>
+    <span class="stat-value">{{ counts.finished }}</span>
+    <span class="stat-label">Finished</span>
+  </a>
+  <a class="stat-card" href="{{ url_for('books.list_books', status='want_to_read') }}">
+    <span class="stat-icon stat-icon--neutral">{{ icon('bookmark') }}</span>
+    <span class="stat-value">{{ counts.want_to_read }}</span>
+    <span class="stat-label">Want to read</span>
+  </a>
+  <a class="stat-card" href="{{ url_for('books.list_books', status='to_buy') }}">
+    <span class="stat-icon stat-icon--beige">{{ icon('bag') }}</span>
+    <span class="stat-value">{{ counts.to_buy }}</span>
+    <span class="stat-label">To buy</span>
+  </a>
+</section>
+
+{% if total_books == 0 %}
+<section class="card empty-state">
+  <span class="empty-icon">{{ icon('book') }}</span>
+  <h2>Your shelf is waiting</h2>
+  <p>Search for a book online to add its cover and details automatically, or enter one by hand.</p>
+  <a class="btn btn-primary" href="{{ url_for('books.new_book') }}">{{ icon('plus') }} Add your first book</a>
+</section>
+{% else %}
+<div class="dashboard-columns">
+  <div class="dashboard-main">
+    <section class="card">
+      <div class="section-head">
+        <div><h2>Currently reading</h2><p class="muted">Your books in progress.</p></div>
+        <a class="text-link" href="{{ url_for('books.list_books', status='currently_reading') }}">All books {{ icon('chevron') }}</a>
+      </div>
+      {% if stats.reading_books %}
+        <div class="book-grid">
+          {% for book in stats.reading_books[:4] %}{{ book_card(book, show_quick_update=true) }}{% endfor %}
+        </div>
+      {% else %}
+        <div class="compact-empty">{{ icon('book-open') }} <span>Nothing in progress right now.</span></div>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div><h2>Continue reading</h2><p class="muted">Save a new page without opening the book.</p></div>
+      </div>
+      {% if stats.reading_books %}
+        <ul class="mini-list continue-list">
+          {% for book in stats.reading_books[:5] %}
+            <li class="mini-list-item" data-progress-scope>
+              <span class="mini-list-dot" data-status="currently_reading"></span>
+              <div class="mini-list-copy">
+                <a href="{{ url_for('books.book_detail', book_id=book.id) }}">{{ book.title }}</a>
+                <span class="muted">Page {{ book.current_page }}{% if book.page_count %} of {{ book.page_count }}{% endif %}{% if book.progress_percent is not none %} · {{ book.progress_percent }}%{% endif %}</span>
+              </div>
+              <form class="quick-update" method="post" action="{{ url_for('books.update_progress', book_id=book.id) }}" data-progress-form>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label class="sr-only" for="continue-{{ book.id }}">Current page of {{ book.title }}</label>
+                <input id="continue-{{ book.id }}" type="number" name="page" min="0" {% if book.page_count %}max="{{ book.page_count }}"{% endif %} value="{{ book.current_page }}" required>
+                <button class="btn btn-primary btn-sm" type="submit">Update</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="compact-empty">{{ icon('bookmark') }} <span>Move a book to Currently Reading to track pages here.</span></div>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="dashboard-side">
+    <section class="card goal-card">
+      <div class="section-head"><div><h2>Reading goal</h2><p class="muted">{{ stats.finished_this_year }} finished this year</p></div>{{ icon('target') }}</div>
+      {% if stats.goal %}
+        <div class="goal-row">
+          <span class="goal-number">{{ stats.finished_this_year }} <span class="muted" style="font-size:.9rem">/ {{ stats.goal }}</span></span>
+          <span class="muted" style="font-size:.8rem">{{ stats.goal_percent }}%</span>
+        </div>
+        <div class="goal-track"><div class="goal-fill" style="width: {{ stats.goal_percent }}%"></div></div>
+        <a class="text-link" href="{{ url_for('settings.index') }}">Adjust goal {{ icon('chevron') }}</a>
+      {% else %}
+        <p class="muted">Set a yearly target to see your progress here.</p>
+        <a class="btn btn-soft btn-sm" href="{{ url_for('settings.index') }}">{{ icon('target') }} Set a goal</a>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <div class="section-head"><div><h2>Recently finished</h2><p class="muted">The last books you completed.</p></div></div>
+      {% if stats.recently_finished %}
+        <ul class="mini-list">
+          {% for book in stats.recently_finished %}
+            <li class="mini-list-item">
+              <span class="mini-list-dot" data-status="finished"></span>
+              <div class="mini-list-copy">
+                <a href="{{ url_for('books.book_detail', book_id=book.id) }}">{{ book.title }}</a>
+                <span class="muted">{{ book.date_finished|date_display if book.date_finished else 'Finished' }}</span>
+              </div>
+              {% if book.rating %}<span class="chip chip--rating">{{ icon('star') }} {{ book.rating }}</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="compact-empty">{{ icon('check-circle') }} <span>No finished books yet.</span></div>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <div class="section-head"><div><h2>Recently updated</h2><p class="muted">Your latest changes.</p></div></div>
+      <ul class="mini-list">
+        {% for book in recently_updated %}
+          <li class="mini-list-item">
+            <span class="mini-list-dot" data-status="{{ book.status }}"></span>
+            <div class="mini-list-copy">
+              <a href="{{ url_for('books.book_detail', book_id=book.id) }}">{{ book.title }}</a>
+              <span class="muted">{{ book.updated_at|date_display }}</span>
+            </div>
+            <span class="badge badge--{{ book.status }}">{{ book.status_label }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      <a class="text-link" href="{{ url_for('statistics.index') }}">See all statistics {{ icon('chevron') }}</a>
+    </section>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

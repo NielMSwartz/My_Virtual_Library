@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% from '_form_field.html' import field %}
+
+{% block page_title %}{{ 'Edit book' if mode == 'edit' else 'Add a book' }}{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('books.book_detail', book_id=book.id) if book else url_for('books.list_books') }}">{{ icon('chevron') }} {{ 'Back to book' if book else 'Back to library' }}</a>
+
+{% if mode == 'create' %}
+<section class="card discovery-card" id="discover">
+  <div class="section-head">
+    <div>
+      <h2>Find a book online</h2>
+      <p class="muted">Search by title, author or ISBN. Pick a result to fill in the details below.</p>
+    </div>
+    <span class="chip">Google Books · Open Library fallback</span>
+  </div>
+  <form class="search-panel" id="online-search-form" role="search">
+    <label class="search-bar">
+      {{ icon('search') }}
+      <span class="sr-only">Search online book catalogues</span>
+      <input type="search" id="online-query" name="q" placeholder="Try “The Hobbit” or a 13-digit ISBN…" autocomplete="off" required>
+    </label>
+    <button class="btn btn-primary search-button" type="submit">{{ icon('search') }} Search books</button>
+  </form>
+  <div class="search-feedback" id="search-feedback" hidden></div>
+  <div class="results-grid" id="search-results" hidden></div>
+  <p class="field-hint discovery-hint">Can't find it? Scroll down and enter the details manually — a cover is optional.</p>
+</section>
+{% endif %}
+
+<form method="post" novalidate class="section-stack" id="book-form">
+  {{ form.hidden_tag() }}
+
+  <section class="card">
+    <div class="section-head"><div><h2>Essentials</h2><p class="muted">The details that identify the book.</p></div></div>
+    <div class="form-grid">
+      {{ field(form.title, css_class='field--full') }}
+      {{ field(form.authors) }}
+      {{ field(form.genre) }}
+      {{ field(form.isbn) }}
+      {{ field(form.publisher) }}
+      {{ field(form.publication_year) }}
+      {{ field(form.cover_url, hint='Paste an image URL; covers can also be found through book search.', css_class='field--full') }}
+      {{ field(form.description, css_class='field--full') }}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><h2>Reading</h2><p class="muted">Where you are and how you felt about it.</p></div></div>
+    <div class="form-grid">
+      {{ field(form.status) }}
+      {{ field(form.rating) }}
+      {{ field(form.page_count) }}
+      {{ field(form.current_page) }}
+      {{ field(form.date_started) }}
+      {{ field(form.date_finished) }}
+      {{ field(form.notes, css_class='field--full') }}
+      {{ field(form.review, css_class='field--full') }}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><h2>Purchase</h2><p class="muted">Useful for books on your to-buy list.</p></div></div>
+    <div class="form-grid">
+      {{ field(form.purchase_status) }}
+      {{ field(form.currency) }}
+      {{ field(form.price) }}
+      {{ field(form.purchase_link, css_class='field--full') }}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <a class="btn btn-outline" href="{{ url_for('books.book_detail', book_id=book.id) if book else url_for('books.list_books') }}">Cancel</a>
+    {{ form.submit(class='btn btn-primary') }}
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+{% if mode == 'create' %}<script src="{{ url_for('static', filename='js/discovery.js') }}" defer></script>{% endif %}
+{% endblock %}

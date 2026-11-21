@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+
+{% block page_title %}Something went wrong{% endblock %}
+
+{% block content %}
+<section class="card empty-state empty-state--page">
+  <span class="empty-icon">{{ icon('alert') }}</span>
+  <h2>Something went wrong.</h2>
+  <p>The error has been logged. Try again, or return to your dashboard.</p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Go to dashboard</a>
+</section>
+{% endblock %}

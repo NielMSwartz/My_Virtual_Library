@@ -1,0 +1,41 @@
+# Render Blueprint for My Virtual Library.
+# https://dashboard.render.com/select-repo?type=blueprint
+#
+# Creating a free Postgres database is free for 30 days. Render then requires
+# an upgrade to a paid database ($6/month) or the data is deleted. See README.
+
+databases:
+  - name: virtual-library-db
+    databaseName: virtual_library
+    user: virtual_library
+    plan: free
+
+services:
+  - type: web
+    name: my-virtual-library
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: >-
+      flask db upgrade &&
+      gunicorn "app:create_app()" --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /
+    envVars:
+      - key: FLASK_APP
+        value: run.py
+      - key: FLASK_CONFIG
+        value: config.ProductionConfig
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: virtual-library-db
+          property: connectionString
+      - key: GOOGLE_BOOKS_API_KEY
+        sync: false
+      - key: OPEN_LIBRARY_ENABLED
+        value: "1"
+      - key: SEARCH_CACHE_TTL_SECONDS
+        value: "604800"
+      - key: REQUEST_TIMEOUT
+        value: "8"
