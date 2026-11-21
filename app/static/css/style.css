@@ -26,6 +26,32 @@
   --sidebar-width: 254px;
   --topbar-height: 78px;
   --font: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+
+  color-scheme: light;
+}
+
+/* Dark theme. Only the tokens change here; component overrides live at the
+   end of this file so the light theme stays completely untouched. */
+html[data-theme="dark"] {
+  --bg: #171A1E;
+  --surface: #22262B;
+  --text: #F1F2F4;
+  --text-muted: #A0A8B2;
+  --accent: #8FAE93;
+  --accent-dark: #B6CDB9;
+  --accent-soft: #2C3A30;
+  --beige: #C8B49A;
+  --beige-soft: #3A342B;
+  --border: #343A41;
+  --border-strong: #454D56;
+  --danger: #E28A84;
+  --danger-soft: #402A2A;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .22);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, .4);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, .55);
+
+  color-scheme: dark;
 }
 
 /* ==========================================================================
@@ -597,3 +623,87 @@ input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--da
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ==========================================================================
+   Dark theme — component level fixes for colours that are not tokenised
+   ========================================================================== */
+html[data-theme="dark"] :focus-visible { outline-color: rgba(143, 174, 147, .55); }
+
+html[data-theme="dark"] .skip-link {
+  background: var(--accent);
+  color: #12201A;
+}
+
+html[data-theme="dark"] .btn-primary,
+html[data-theme="dark"] .brand-mark,
+html[data-theme="dark"] .bookmark-ribbon,
+html[data-theme="dark"] .mobile-add-circle { color: #12201A; }
+
+html[data-theme="dark"] .btn-soft:hover { background: #38493C; }
+html[data-theme="dark"] .btn-danger:hover { background: #503233; }
+html[data-theme="dark"] .btn-danger-solid:hover { background: #C46F69; }
+
+html[data-theme="dark"] .nav-label { color: #7E8792; }
+html[data-theme="dark"] .nav-item { color: #B9C0C8; }
+html[data-theme="dark"] .nav-item .icon { color: #8B949E; }
+html[data-theme="dark"] .nav-item:hover { background: #2B3036; color: var(--text); }
+html[data-theme="dark"] .sidebar-footnote { color: #6F7883; }
+
+html[data-theme="dark"] .topbar {
+  background: rgba(23, 26, 30, .9);
+  border-bottom-color: rgba(52, 58, 65, .85);
+}
+
+html[data-theme="dark"] .stat-icon--beige { color: #D9BF98; }
+html[data-theme="dark"] .stat-icon--neutral { background: #2C3137; color: #9DA6B0; }
+
+html[data-theme="dark"] .badge { background: #2C3137; color: #AEB6C0; }
+html[data-theme="dark"] .badge--want_to_read { background: #2A3036; color: #AEB6C0; }
+html[data-theme="dark"] .badge--finished { background: #2C3A30; color: #A9C7AE; }
+html[data-theme="dark"] .mini-list-dot[data-status="finished"] { background: #7FA589; }
+
+html[data-theme="dark"] .field-label { color: #D6DBE1; }
+html[data-theme="dark"] input:focus,
+html[data-theme="dark"] select:focus,
+html[data-theme="dark"] textarea:focus { box-shadow: 0 0 0 3px rgba(143, 174, 147, .2); }
+
+html[data-theme="dark"] .modal-backdrop,
+html[data-theme="dark"] .sidebar-backdrop { background: rgba(0, 0, 0, .6); }
+
+html[data-theme="dark"] .toast {
+  background: #30363D;
+  color: #F1F2F4;
+  border: 1px solid var(--border-strong);
+}
+
+html[data-theme="dark"] .book-cover-wrap { background: #2C3137; }
+html[data-theme="dark"] .book-cover-fallback {
+  background: linear-gradient(150deg, #2B3036, #24292E);
+  color: #9AA6AE;
+}
+html[data-theme="dark"] .progress-track,
+html[data-theme="dark"] .goal-track { background: #343A41; }
+
+html[data-theme="dark"] .chip { color: #B9C0C8; }
+html[data-theme="dark"] .chip--rating {
+  background: #3A342B;
+  border-color: #5A4C39;
+  color: #DCC39E;
+}
+html[data-theme="dark"] .finish-card { border-color: #5A4C39; }
+html[data-theme="dark"] .finish-card p { color: var(--text-muted); }
+html[data-theme="dark"] .detail-section p { color: #C2C9D1; }
+html[data-theme="dark"] .detail-progress .progress-track { background: rgba(255, 255, 255, .14); }
+
+html[data-theme="dark"] .result-desc { color: #AAB2BC; }
+html[data-theme="dark"] .skeleton {
+  background: linear-gradient(100deg, #2B3036 30%, #343A41 50%, #2B3036 70%);
+}
+html[data-theme="dark"] .bar-track { background: #2C3137; }
+
+html[data-theme="dark"] .mobile-nav { box-shadow: 0 -6px 20px rgba(0, 0, 0, .25); }
+
+/* Theme toggle icon swap: show a moon in light mode, a sun in dark mode. */
+.theme-icon--sun { display: none; }
+html[data-theme="dark"] .theme-icon--sun { display: block; }
+html[data-theme="dark"] .theme-icon--moon { display: none; }

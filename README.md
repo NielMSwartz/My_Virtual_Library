@@ -23,6 +23,8 @@ book, and see honest reading statistics — all stored in a real database.
   goal, completed-books-by-month, genre distribution and per-book progress.
 - **Polished UI** — responsive sidebar/bottom navigation, soft grey and sage
   palette, accessible form controls, modal delete confirmation and toast feedback.
+- **Dark mode** — follows your device preference automatically, with a toggle in
+  the top bar that remembers your choice.
 
 ## Quick start
 
@@ -66,6 +68,13 @@ The app shell (styles, scripts and icons) is cached by a service worker, so the
 interface still opens without a connection. Book data always comes from the
 server, so changes need an internet connection. HTML pages are deliberately
 never cached — that keeps CSRF tokens and your library fresh.
+
+## Appearance
+
+The theme follows your device setting by default. Use the sun/moon button in
+the top bar to switch; your choice is saved in that browser and the site's
+theme colour updates with it. Clearing site data resets it to the system
+preference.
 
 ## Deploy to Render (free tier)
 
@@ -169,6 +178,7 @@ book_tracker/
     static/
       css/style.css
       js/main.js           # navigation, modal, toasts, image fallback
+      js/theme.js          # light/dark theme toggle
       js/reading_progress.js
       js/discovery.js
       sw.js                # offline shell service worker

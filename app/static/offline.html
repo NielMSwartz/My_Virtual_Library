@@ -59,6 +59,18 @@
       cursor: pointer;
     }
     button:focus-visible { outline: 3px solid #D9C9B4; outline-offset: 2px; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #F1F2F4;
+        --muted: #A0A8B2;
+        --sage: #8FAE93;
+        --surface: #22262B;
+        --canvas: #171A1E;
+        --line: #343A41;
+      }
+      .card { box-shadow: 0 18px 50px rgba(0, 0, 0, .45); }
+      button { color: #12201A; }
+    }
   </style>
 </head>
 <body>
