@@ -71,6 +71,12 @@ def test_production_requires_real_secret_key(monkeypatch):
     monkeypatch.setattr(
         ProductionConfig, "SECRET_KEY", config_module.DEVELOPMENT_SECRET_KEY
     )
+    monkeypatch.setattr(
+        ProductionConfig,
+        "SQLALCHEMY_DATABASE_URI",
+        "postgresql://user:pw@localhost/db",
+        raising=False,
+    )
     with pytest.raises(RuntimeError, match="SECRET_KEY"):
         create_app("config.ProductionConfig")
 
@@ -79,3 +85,16 @@ def test_production_requires_real_secret_key(monkeypatch):
 
     assert application.config["SESSION_COOKIE_SECURE"] is True
     assert application.config["PREFERRED_URL_SCHEME"] == "https"
+
+
+def test_production_requires_postgres_database_url(monkeypatch):
+    monkeypatch.setattr(ProductionConfig, "SECRET_KEY", "a-real-secret-key")
+    monkeypatch.setattr(
+        ProductionConfig,
+        "SQLALCHEMY_DATABASE_URI",
+        config_module.normalize_database_url(None),
+        raising=False,
+    )
+
+    with pytest.raises(RuntimeError, match="DATABASE_URL"):
+        create_app("config.ProductionConfig")

@@ -57,6 +57,19 @@ def create_app(config_object: object | str | None = None) -> Flask:
             "Set the SECRET_KEY environment variable before starting the app."
         )
 
+    # In production SQLite would live on Render's temporary filesystem and be
+    # wiped on every rebuild. Fail loudly instead of silently losing data.
+    if (
+        not app.debug
+        and not app.testing
+        and str(app.config["SQLALCHEMY_DATABASE_URI"]).startswith("sqlite:///")
+    ):
+        raise RuntimeError(
+            "DATABASE_URL must point to the Render Postgres database in "
+            "production. Without it the app falls back to temporary SQLite "
+            "storage and every rebuild erases your books."
+        )
+
     # Flask-SQLAlchemy resolves relative SQLite paths against the instance
     # folder, which is also where the local database and migrations live.
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)

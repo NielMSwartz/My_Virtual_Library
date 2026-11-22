@@ -158,6 +158,18 @@ The free Postgres database is deleted 30 days after creation unless you upgrade
 it. No login or migration script can prevent that; the $6/month plan is what
 keeps your library permanently.
 
+### If books disappear after a deploy
+
+- If the site asks you to **sign up again**, the app connected to a brand-new
+  database. Check that `virtual-library-db` is **Available** and has not expired.
+- Check the web service's **Environment** tab: `DATABASE_URL` must come from
+  `virtual-library-db`, not be a `sqlite:///` value.
+- Do not run the Blueprint setup again or delete/recreate the database. To
+  deploy code, just commit and push to GitHub.
+- The app now refuses to start in production if `DATABASE_URL` is missing, so
+  check the Render Logs for a clear error instead of silently using temporary
+  SQLite storage.
+
 ### Deploying updates
 
 Commit and push to the connected branch. Render rebuilds automatically and runs
