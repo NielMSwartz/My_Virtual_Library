@@ -1,0 +1,25 @@
+{% extends 'auth/auth_base.html' %}
+{% from '_form_field.html' import field %}
+{% from '_icons.html' import icon %}
+
+{% block title %}Sign in{% endblock %}
+{% block heading %}Welcome back{% endblock %}
+{% block lead %}Sign in to open your bookshelf and reading progress.{% endblock %}
+
+{% block auth_content %}
+<form method="post" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+  {{ form.hidden_tag() }}
+  {{ field(form.email) }}
+  {{ field(form.password) }}
+  <label class="checkbox-line">
+    {{ form.remember() }} <span>Keep me signed in on this device</span>
+  </label>
+  <button class="btn btn-primary btn-block" type="submit">
+    {{ icon('lock') }} {{ form.submit.label.text }}
+  </button>
+</form>
+<p class="auth-switch">
+  Forgot your password? Reset it from the computer that hosts the app with
+  <code>flask reset-password</code>.
+</p>
+{% endblock %}

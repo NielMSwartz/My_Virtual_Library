@@ -65,6 +65,9 @@ def test_google_results_are_normalised(client, monkeypatch):
         return FakeResponse(payload={"items": [google_item()]})
 
     monkeypatch.setattr(requests, "get", fake_get)
+    # An optional key may be set in the developer's environment; this test
+    # checks that a plain search works without one.
+    monkeypatch.setitem(client.application.config, "GOOGLE_BOOKS_API_KEY", None)
 
     response = client.get("/search/online?q=hobbit")
     payload = response.get_json()

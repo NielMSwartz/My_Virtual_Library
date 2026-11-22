@@ -9,7 +9,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+from flask_login import UserMixin
 from sqlalchemy import CheckConstraint, Index
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
 
@@ -55,6 +57,44 @@ class PurchaseStatus:
         (UNKNOWN, "Unknown"),
     )
     LABELS = dict(CHOICES)
+
+
+class User(UserMixin, db.Model):
+    """The single private account that owns this bookshelf.
+
+    Book rows are intentionally not tied to a user id: this app is designed for
+    one person. Login controls access to the whole library rather than splitting
+    it between accounts.
+    """
+
+    __tablename__ = "users"
+    __table_args__ = (Index("ix_users_email", "email", unique=True),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(254), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=_utcnow)
+
+    @staticmethod
+    def normalize_email(value: str | None) -> str:
+        return (value or "").strip().lower()
+
+    @classmethod
+    def find_by_email(cls, value: str | None):
+        return db.session.query(cls).filter_by(email=cls.normalize_email(value)).first()
+
+    @classmethod
+    def count(cls) -> int:
+        return db.session.query(cls).count()
+
+    def set_password(self, password: str) -> None:
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self) -> str:  # pragma: no cover - debugging helper
+        return f"<User id={self.id} email={self.email!r}>"
 
 
 class Book(db.Model):

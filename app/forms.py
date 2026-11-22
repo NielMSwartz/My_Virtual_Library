@@ -5,18 +5,29 @@ from __future__ import annotations
 from flask_wtf import FlaskForm
 from wtforms.fields.choices import SelectChoice
 from wtforms import (
+    BooleanField,
     DateField,
     DecimalField,
     HiddenField,
     IntegerField,
+    PasswordField,
     SelectField,
     StringField,
     SubmitField,
     TextAreaField,
 )
-from wtforms.validators import DataRequired, Length, NumberRange, Optional, URL, ValidationError
+from wtforms.validators import (
+    DataRequired,
+    Email,
+    EqualTo,
+    Length,
+    NumberRange,
+    Optional,
+    URL,
+    ValidationError,
+)
 
-from app.models import BookStatus, PurchaseStatus
+from app.models import BookStatus, PurchaseStatus, User
 from app.services.book_catalog import find_duplicate
 
 STAR_CHOICES = [(0, "No rating")] + [(value, f"{value} star{'s' if value > 1 else ''}") for value in range(1, 6)]
@@ -124,3 +135,60 @@ class SettingsForm(FlaskForm):
 class OnlineSearchForm(FlaskForm):
     query = StringField("Title, author or ISBN", validators=[DataRequired(), Length(max=200)])
     submit = SubmitField("Search")
+
+
+class SetupForm(FlaskForm):
+    """Create the one private account, only possible while no user exists."""
+
+    email = StringField(
+        "Email address",
+        validators=[DataRequired(), Email(), Length(max=254)],
+        filters=[lambda value: User.normalize_email(value) if value else value],
+    )
+    password = PasswordField(
+        "Password",
+        validators=[DataRequired(), Length(min=8, max=128)],
+    )
+    confirm_password = PasswordField(
+        "Confirm password",
+        validators=[DataRequired(), EqualTo("password", message="Passwords must match.")],
+    )
+    submit = SubmitField("Create account")
+
+    def validate_email(self, field) -> None:
+        field.data = User.normalize_email(field.data)
+        if User.count() > 0:
+            raise ValidationError("This bookshelf already has an account. Sign in instead.")
+        if User.find_by_email(field.data) is not None:
+            raise ValidationError("That email is already in use.")
+
+
+class LoginForm(FlaskForm):
+    email = StringField(
+        "Email address",
+        validators=[DataRequired(), Email(), Length(max=254)],
+        filters=[lambda value: User.normalize_email(value) if value else value],
+    )
+    password = PasswordField("Password", validators=[DataRequired()])
+    remember = BooleanField("Keep me signed in")
+    submit = SubmitField("Sign in")
+
+    def validate_email(self, field) -> None:
+        field.data = User.normalize_email(field.data)
+
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField("Current password", validators=[DataRequired()])
+    new_password = PasswordField(
+        "New password",
+        validators=[DataRequired(), Length(min=8, max=128)],
+    )
+    confirm_password = PasswordField(
+        "Confirm new password",
+        validators=[DataRequired(), EqualTo("new_password", message="Passwords must match.")],
+    )
+    submit_password = SubmitField("Change password")
+
+
+class LogoutForm(FlaskForm):
+    """CSRF-protected logout button used in Settings."""

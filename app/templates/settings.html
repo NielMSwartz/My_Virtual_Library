@@ -29,7 +29,7 @@
   </section>
 
   <section class="card">
-    <div class="section-head"><div><h2>Your library</h2><p class="muted">Everything is stored locally in your database.</p></div>{{ icon('library') }}</div>
+    <div class="section-head"><div><h2>Your library</h2><p class="muted">Everything is stored in the application database.</p></div>{{ icon('library') }}</div>
     <div class="fact-list">
       <div><div class="fact-label">Total books</div><div class="fact-value">{{ stats.total_books }}</div></div>
       <div><div class="fact-label">Finished</div><div class="fact-value">{{ stats.total_finished }}</div></div>
@@ -40,6 +40,21 @@
       Book data and reading progress live in the application database, not in your browser. They survive refreshes,
       browser restarts and Flask restarts. Use database migrations when the schema changes.
     </p>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><h2>Account</h2><p class="muted">Your private bookshelf sign-in.</p></div>{{ icon('user') }}</div>
+    <div class="fact-list">
+      <div><div class="fact-label">Signed in as</div><div class="fact-value">{{ current_user.email }}</div></div>
+      <div><div class="fact-label">Access</div><div class="fact-value">One private account</div></div>
+    </div>
+    <div class="form-actions" style="justify-content:flex-start;flex-wrap:wrap">
+      <a class="btn btn-outline" href="{{ url_for('auth.change_password') }}">{{ icon('lock') }} <span>Change password</span></a>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        {{ logout_form.hidden_tag() }}
+        <button class="btn btn-danger" type="submit">{{ icon('log-out') }} <span>Sign out</span></button>
+      </form>
+    </div>
   </section>
 </div>
 {% endblock %}

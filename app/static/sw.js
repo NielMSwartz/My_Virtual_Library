@@ -6,7 +6,7 @@
  * the app shows a small offline page instead of a browser error.
  */
 
-const CACHE_NAME = "bookshelf-shell-v2";
+const CACHE_NAME = "bookshelf-shell-v3";
 
 const SHELL_ASSETS = [
   "/offline",

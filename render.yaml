@@ -19,7 +19,8 @@ services:
     startCommand: >-
       flask db upgrade &&
       gunicorn "app:create_app()" --bind 0.0.0.0:$PORT --workers 2 --timeout 120
-    healthCheckPath: /
+    # / redirects to sign-in; this public route returns 200 for health checks.
+    healthCheckPath: /offline
     envVars:
       - key: FLASK_APP
         value: run.py

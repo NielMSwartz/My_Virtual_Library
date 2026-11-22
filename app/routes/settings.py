@@ -5,7 +5,7 @@ from __future__ import annotations
 from flask import Blueprint, flash, redirect, render_template, url_for
 
 from app import db
-from app.forms import SettingsForm
+from app.forms import LogoutForm, SettingsForm
 from app.models import Setting
 from app.services.reading_stats import build_statistics, current_year, yearly_goal
 
@@ -26,4 +26,5 @@ def index():
         form=form,
         stats=build_statistics(),
         year=current_year(),
+        logout_form=LogoutForm(),
     )

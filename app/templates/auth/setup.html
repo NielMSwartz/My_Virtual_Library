@@ -1,0 +1,19 @@
+{% extends 'auth/auth_base.html' %}
+{% from '_form_field.html' import field %}
+{% from '_icons.html' import icon %}
+
+{% block title %}Create account{% endblock %}
+{% block heading %}Make it yours{% endblock %}
+{% block lead %}Create the private sign-in for your bookshelf. This can only be done once.{% endblock %}
+
+{% block auth_content %}
+<form method="post" action="{{ url_for('auth.setup', next=request.args.get('next')) }}">
+  {{ form.hidden_tag() }}
+  {{ field(form.email, hint='You will use this address to sign in.') }}
+  {{ field(form.password, hint='At least 8 characters.') }}
+  {{ field(form.confirm_password) }}
+  <button class="btn btn-primary btn-block" type="submit">
+    {{ icon('user') }} {{ form.submit.label.text }}
+  </button>
+</form>
+{% endblock %}

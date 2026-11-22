@@ -7,6 +7,7 @@ in tests, and later against PostgreSQL. See .env.example for documentation.
 from __future__ import annotations
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from sqlalchemy.pool import StaticPool
@@ -69,4 +70,8 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
     PREFERRED_URL_SCHEME = "https"

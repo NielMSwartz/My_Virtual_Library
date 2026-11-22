@@ -48,8 +48,9 @@ flask db upgrade
 python run.py
 ```
 
-Open <http://127.0.0.1:5000>. On a fresh database the dashboard shows an empty
-state and an **Add your first book** button.
+Open <http://127.0.0.1:5000>. On a fresh database you will be asked to create
+one private account (email + password). After signing in, the dashboard shows
+an empty state and an **Add your first book** button.
 
 ## Install it on your phone and desktop
 
@@ -76,6 +77,31 @@ the top bar to switch; your choice is saved in that browser and the site's
 theme colour updates with it. Clearing site data resets it to the system
 preference.
 
+## Your private account
+
+The bookshelf uses one email/password account. The sign-up page is only
+available while no account exists; after that it redirects to sign-in. Passwords
+are stored as salted hashes, never in plain text, and sessions use an HTTP-only,
+SameSite cookie. Sign out from **Settings → Account**.
+
+If you forget the password, reset it on the computer that can access the
+database:
+
+```powershell
+flask reset-password --email you@example.com
+# You will be prompted securely for the new password.
+```
+
+You can also create the first account without opening a browser:
+
+```powershell
+flask create-account --email you@example.com
+```
+
+The public PWA shell (`/offline`, `/sw.js`, `/manifest.webmanifest`) stays
+available before sign-in so an installed app can still open while offline.
+Everything else redirects to the sign-in page.
+
 ## Deploy to Render (free tier)
 
 The repo includes a `render.yaml` Blueprint, so Render creates the web service
@@ -89,8 +115,8 @@ and Postgres database for you.
    database. Confirm the name and region (keep both in the same region).
 5. Click **Apply**. The first deploy installs dependencies, runs
    `flask db upgrade` and starts Gunicorn.
-6. Open the `onrender.com` URL shown on the service page. Check the Logs tab if
-   the first request fails.
+6. Open the `onrender.com` URL shown on the service page. Create your private
+   account on the first visit. Check the Logs tab if the first request fails.
 7. Set your yearly reading goal in **Settings**.
 
 **Important free-tier limits** (checked against Render's docs in November 2026):
@@ -103,6 +129,34 @@ and Postgres database for you.
 - The free database is capped at 1 GB and has no backups. Export your data
   regularly if you rely on the free tier.
 - Only one free Postgres database is allowed per Render workspace.
+
+### Move your local books to Render
+
+Signing in does **not** make data persist — the Render Postgres database does.
+A new cloud database starts empty. To copy the books, bookmark history and
+yearly goal from your local `instance/book_tracker.db`, use Render's **External
+Database URL** from the database page:
+
+```powershell
+# 1. Point the Flask CLI at the Render database and apply the latest schema.
+$env:DATABASE_URL = "postgresql://..."
+$env:FLASK_APP = "run.py"
+flask db upgrade
+
+# 2. Copy local SQLite data into it. You will be prompted for the password.
+python scripts/transfer_library.py --email you@example.com
+
+Remove-Item Env:DATABASE_URL
+```
+
+If you already created your account on the website, leave out `--email`; the
+script keeps the existing sign-in. If the Render database already contains
+books, add `--force` and confirm the replacement. Do not use a database you
+still need — `--force` deletes its books, sessions and goal before copying.
+
+The free Postgres database is deleted 30 days after creation unless you upgrade
+it. No login or migration script can prevent that; the $6/month plan is what
+keeps your library permanently.
 
 ### Deploying updates
 
@@ -158,11 +212,13 @@ token explicitly.
 ```text
 book_tracker/
   app/
-    __init__.py            # app factory, extensions, error handlers
-    models.py              # Book, ReadingSession, Setting, SearchCache
+    __init__.py            # app factory, extensions, auth guard, error handlers
+    models.py              # User, Book, ReadingSession, Setting, SearchCache
     forms.py               # Flask-WTF forms and validation
+    cli.py                 # create-account / reset-password commands
     routes/
       __init__.py          # blueprint registration
+      auth.py              # sign-up, sign-in, sign-out, password change
       dashboard.py         # dashboard
       books.py             # CRUD, filters, status, progress, completion
       search.py            # external discovery JSON endpoint
@@ -188,6 +244,7 @@ book_tracker/
   migrations/              # Alembic migrations
   tests/
   scripts/generate_icons.py
+  scripts/transfer_library.py  # one-time local SQLite → cloud copy
   instance/                # local SQLite database (git-ignored)
   config.py
   run.py
@@ -210,5 +267,5 @@ book_tracker/
 
 ## Roadmap ideas
 
-Optional future additions: authentication, shared shelves, e-book file imports,
-data export/import, reading reminders, and a paid, always-on database plan.
+Optional future additions: multiple accounts, shared shelves, e-book file
+imports, full data export, reading reminders, and email-based password reset.
